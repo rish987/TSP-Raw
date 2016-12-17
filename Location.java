@@ -1,0 +1,93 @@
+/* 
+ * Filename:    Location.java
+ * Author:      Rish Vaishnav
+ * Date:        12/15/2016
+ *
+ * Description:
+ * This file contains the Location class. See class header for more information.
+ */
+
+/**
+ * A Location represents a two-dimensional location with an x- and
+ * y-coordinate.
+ */
+class Location
+{
+    /* the x- and y-coordinates of this location */
+    private double x = 0;
+    private double y = 0;
+
+    /**
+     * Constructs a new location with the specified coordinates.
+     *
+     * @param init_x the initial x-coordinate
+     * @param init_y the initial y-coordinate
+     */
+    public Location ( double init_x, double init_y )
+    {
+        /* set the coordinates of this location */
+        this.setCoordinates( init_x, init_y );
+    }
+
+    /**
+     * Constructs a new location with the default coordinates of (0, 0).
+     */
+    public Location ()
+    {
+        /* set the coordinates of this location to the default coordinates
+         * of (0, 0) */
+        this.setCoordinates( 0, 0 );
+    }
+
+    /** 
+     * Sets the coordinates of this location.
+     *
+     * @param new_x the new x-coordinate
+     * @param new_y the new y-coordinate
+     */
+    public void setCoordinates ( double new_x, double new_y )
+    {
+        this.setX( new_x );
+        this.setY( new_y );
+    }
+
+    /**
+     * Sets the x-coordinate of this location.
+     *
+     * @param new_x the new x-coordinate
+     */
+    public void setX ( double new_x )
+    {
+        this.x = new_x;
+    }
+
+    /**
+     * Sets the y-coordinate of this location.
+     *
+     * @param new_y the new y-coordinate
+     */
+    public void setY ( double new_y )
+    {
+        this.y = new_y;
+    }
+
+    /**
+     * Returns the x-coordinate of this location.
+     *
+     * @return the x-coordinate of this location
+     */
+    public double getX ()
+    {
+        return this.x;
+    }
+
+    /**
+     * Returns the y-coordinate of this location.
+     *
+     * @return the y-coordinate of this location
+     */
+    public double getY ()
+    {
+        return this.y;
+    }
+}
