@@ -23,8 +23,7 @@ class Location
      * @param init_x the initial x-coordinate
      * @param init_y the initial y-coordinate
      */
-    public Location ( double init_x, double init_y )
-    {
+    public Location ( double init_x, double init_y ) {
         /* set the coordinates of this location */
         this.setCoordinates( init_x, init_y );
     }
@@ -89,5 +88,29 @@ class Location
     public double getY ()
     {
         return this.y;
+    }
+
+    /**
+     * Returns whether or not this Location and another given Location are 
+     * equal.
+     *
+     * @param loc the location to compare this one to
+     *
+     * @return is this location equal to the given location?
+     */
+    @Override
+    public boolean equals ( Object loc )
+    {
+        /* the object types match */
+        if  ( ( loc instanceof Location )
+            && (this.getClass().equals( loc.getClass() ) ) )
+        {
+            /* the two locations are equivalent if they share the same x- and
+             * y-coordinates */
+            return ( this.getX() == ( ( Location ) loc ).getX() ) 
+                && ( this.getY() == ( ( Location ) loc ).getY() );
+        }
+
+        return false;
     }
 }
