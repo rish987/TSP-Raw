@@ -21,7 +21,6 @@ public final class TSPAlgorithms
 {
     /* is debug mode on? */
     public static final boolean DEBUG = false;
-    public static final boolean DEBUG_2 = false;
 
     /**
      * This method uses the greedy algorithm to find an (often unoptimal) 
@@ -116,17 +115,6 @@ public final class TSPAlgorithms
             Location min_dist_loc = null;
             int min_dist_loc_ind = -1;
 
-            /* TODO */
-//            System.out.println( "--- Remaining Locations: "
-//                + remaining_locs.size() + " ---" );
-//
-//            System.out.println( "Distance to (" 
-//                    + remaining_locs.get( 0 ).getX()
-//                    + ","
-//                    + remaining_locs.get( 0 ).getY() 
-//                    + "): " + min_dist );
-            /**/
-
             /* go through loc_visited */
             for ( int i = 0; i < loc_visited.length; i++ )
             {
@@ -146,22 +134,8 @@ public final class TSPAlgorithms
                         min_dist_loc = locs[ i ];
                         min_dist_loc_ind = i;
                     }
-                    /* TODO */
-    //                System.out.println( "Distance to (" 
-    //                        + remaining_locs.get( i ).getX()
-    //                        + ","
-    //                        + remaining_locs.get( i ).getY() 
-    //                        + "): " + this_dist );
-                    /**/
                 }
             }
-            /* TODO */
-//            System.out.println( "Minimum distance to (" 
-//                    + remaining_locs.get( min_dist_loc_ind ).getX()
-//                    + ","
-//                    + remaining_locs.get( min_dist_loc_ind ).getY() 
-//                    + "): " + min_dist );
-            /**/
             /* add this location to the greedy tour */
             greedy_tour[ greedy_tour_ind ] = min_dist_loc;
             greedy_tour_ind++;
@@ -234,6 +208,9 @@ public final class TSPAlgorithms
         /* the length of a tour constructed by the nearest neighbor solution */
         double C_nn = get_tour_length( sol_greedy( locs ) );
 
+        /* the minimum tour distance so far */
+        double min_tour_dist = C_nn;
+
         /* the number of ants to send out in one iteration */
         int m = n;
 
@@ -273,7 +250,7 @@ public final class TSPAlgorithms
         double beta = 4;
 
         /* TODO remove TODO */
-        int num_iterations = 3000;
+        int num_iterations = 1000;
 
         /* has a stagnating state been reached? */
         boolean stagnated = false;
@@ -471,9 +448,24 @@ public final class TSPAlgorithms
                     /* add pheromone to this path */
                     path.addPheromone( 1 / this_ant_tour_length );
                 }
+
+                /* this distance is less than the minimum so far */
+                if ( this_ant_tour_length < min_tour_dist )
+                {
+                    /* reset the minimum and the solution */
+                    min_tour_dist = this_ant_tour_length;
+                    sol_tour_inds = Arrays.copyOf( 
+                        ant_tour_inds[ ant ], ant_tour_inds.length );
+                }
             }
 
-            if ( DEBUG )
+            /* TODO replace with stagnation check */
+            if ( num_iterations <= 0 )
+            {
+                stagnated = true;
+            }
+
+            if ( DEBUG && stagnated )
             {
                 System.out.println( "Ant Tours Constructed:" );
                 for ( int i = 0; i < m; i++ )
@@ -521,83 +513,9 @@ public final class TSPAlgorithms
                     System.out.println();
                 }
             }
-            /* TODO check for stagnation TODO */
-            /* TODO */
-            if ( num_iterations <= 0 )
-            {
-                stagnated = true;
 
-                if ( DEBUG_2 )
-                {
-                    System.out.println( "Ant Tours Constructed:" );
-                    for ( int i = 0; i < m; i++ )
-                    {
-                        System.out.print( "Ant " + i + ": " );
-                        int j = 0;
-                        for ( j = 0; j < ant_tour_inds[ i ].length - 1; j++ )
-                        {
-                            System.out.print( ant_tour_inds[ i ][ j ] + ", " );
-                        }
-                        System.out.print( ant_tour_inds[ i ][ j ] );
-                        System.out.print( " (" + get_tour_length( 
-                            get_tour_from_inds( locs, 
-                            ant_tour_inds[ i ] ) ) + ")" );
-                        System.out.println();
-                    }
-
-                    System.out.println( "Pheromone Values (x1000):" );
-
-                    System.out.print( "  " );
-                    /* go through each of the columns in paths */
-                    for ( int col = 0; col < paths[ 0 ].length; col++ )
-                    {
-                        System.out.print( col + "    " );
-                    }
-                    System.out.println();
-                    /* go through each of the rows in paths */
-                    for ( int row = 0; row < paths.length; row++ )
-                    {
-                        int col = 0;
-                        System.out.print( row + " " );
-                        /* go through each of the columns in paths */
-                        for ( col = 0; col < paths[ row ].length; col++ )
-                        {
-                            /* there is a path defined here */
-                            if ( row != col )
-                            {
-                                System.out.printf( "%.2f ", 
-                                    ( paths[ row ][ col ].getPheromone() * 1000 ) );
-                            }
-                            else 
-                            {
-                                System.out.print( "0.00 " );
-                            }
-                        }
-                        System.out.println();
-                    }
-                }
-            }
             num_iterations--;
             /**/
-        }
-        
-        /* the minimum tour distance so far */
-        double min_tour_dist = Double.MAX_VALUE;
-
-        /* go through all of the ants */
-        for ( int ant = 0; ant < m; ant++ )
-        {
-            /* the length of this ant's tour */
-            double this_dist = get_tour_length( get_tour_from_inds( 
-                locs, ant_tour_inds[ ant ] ) );
-
-            /* this distance is less than the minimum so far */
-            if ( this_dist < min_tour_dist )
-            {
-                /* reset the minimum and the solution */
-                min_tour_dist = this_dist;
-                sol_tour_inds = ant_tour_inds[ ant ];
-            }
         }
 
         /* return the ant's tour with minimum distance */
