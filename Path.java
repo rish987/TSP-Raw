@@ -27,12 +27,8 @@ class Path
     /* the initial amount of pheromone on a path */
     private static final double INIT_PHEROMONE = 1;
 
-    /* the amount of pheromone that an ant adds to a path as it travels
-     * across it */
-    private static final double PHEROMONE_ADD = 0.5;
-
     /* the evaporation rate of pheromones along a path in one time interval */
-    private static final double PHEROMONE_EVAP_RATE = 0.25;
+    private static final double PHEROMONE_EVAP_RATE = 0.5;
 
     /**
      * Create this path with the specified start and end points.
@@ -115,11 +111,13 @@ class Path
 
     /**
      * Adds pheromone to this path as an ant travels across it.
+     *
+     * @param add the amount of pheromone to add
      */
-    public void addPheromone () 
+    public void addPheromone ( double add ) 
     {
         /* add to the current amount of pheromone on this path */
-        this.setPheromone( this.getPheromone() + PHEROMONE_ADD );
+        this.setPheromone( this.getPheromone() + add );
     }
 
     /**
