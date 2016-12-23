@@ -85,10 +85,7 @@ class Tester
         /* get the basic ACO tour through the random locs */
         Location[] ACO_basic_tour = TSPAlgorithms.sol_ACO_AS( rand_locs );
 
-//        System.out.println( "\nGreedy Tour Length: " 
-//            + TSPAlgorithms.get_tour_length( greedy_tour ) );
-
-        System.out.println( "\nBASIC ACO SOLUTION: \n" );
+        System.out.println( "\nACO ANT SYSTEM (AS) SOLUTION: \n" );
         /* go through each location in the basic ACO tour */
         for ( int ACO_basic_tour_ind = 0; 
             ACO_basic_tour_ind < ACO_basic_tour.length; ACO_basic_tour_ind++ )
@@ -102,14 +99,5 @@ class Tester
         }
         System.out.println( "\nTour Length: " 
             + TSPAlgorithms.get_tour_length( ACO_basic_tour ) );
-
-        /* TODO */
-//        EnumeratedIntegerDistribution test = 
-//            new EnumeratedIntegerDistribution( new int[] { 1, 0 }, new double[] { 0.75, 0.25 } );
-//        for ( int i = 0; i < 10; i++ )
-//        {
-//            System.out.println( test.sample() );
-//        }
-        /**/
     }
 }

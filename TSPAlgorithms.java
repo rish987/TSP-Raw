@@ -8,6 +8,7 @@
  * information.
  */
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import org.apache.commons.math3.distribution.EnumeratedIntegerDistribution;
 
@@ -20,6 +21,7 @@ public final class TSPAlgorithms
 {
     /* is debug mode on? */
     public static final boolean DEBUG = false;
+    public static final boolean DEBUG_2 = false;
 
     /**
      * This method uses the greedy algorithm to find an (often unoptimal) 
@@ -341,6 +343,9 @@ public final class TSPAlgorithms
                 {
                     /* the total value of the remaining path weights */
                     double total_weight = 0;
+
+                    /* the number of NaNs found */
+                    int num_NaNs = 0;
      
                     /* go through each of the locations */
                     for ( int locs_i = 0; locs_i < locs.length; locs_i++ )
@@ -366,6 +371,13 @@ public final class TSPAlgorithms
                             probs[ locs_i ] =
                                 paths[ curr_loc_ind ][ locs_i ].getWeight( 
                                 alpha, beta ) / total_weight;
+
+                            /* this probability is very, very small */
+                            if ( Double.isNaN( probs[ locs_i ] ) )
+                            {
+                                /* there is one more NaN */
+                                num_NaNs++;
+                            }
                         }
                         /* the ant has already visited this location */
                         else
@@ -376,12 +388,42 @@ public final class TSPAlgorithms
                             probs[ locs_i ] = 0;
                         }
                     }
+
+                    /* the weight is so small that it is essentially 0 */
+                    if ( total_weight == 0.0 )
+                    {
+                        /* go through each of the locations */
+                        for ( int locs_i = 0; locs_i < locs.length; locs_i++ )
+                        {
+                            /* the ant has not already visited this location */
+                            if ( !ant_visited_loc[ ant ][ locs_i ] )
+                            {
+                                /* set the probability of the ant choosing this
+                                 * path to the same for every possible end
+                                 * location */
+                                probs[ locs_i ] = 1.0 / ( double ) num_NaNs;
+                            }
+                        }
+                    }
+
+                    EnumeratedIntegerDistribution path_dist = null;
      
-                    /* create a new enumerated random distribution using the paths
-                     * and the path probabilites to determine the path the ant
-                     * takes next */
-                    EnumeratedIntegerDistribution path_dist = 
-                        new EnumeratedIntegerDistribution( locs_inds, probs );
+                    /* this may not work */
+                    try
+                    {
+                        /* create a new enumerated random distribution using
+                         * the paths and the path probabilites to determine the
+                         * path the ant takes next */
+                        path_dist = 
+                            new EnumeratedIntegerDistribution( 
+                            locs_inds, probs );
+                    }
+                    catch ( Exception e )
+                    {
+                        e.printStackTrace();
+                        System.out.println( Arrays.toString( probs ) );
+                    }
+
                 
                     /* choose a location to move to from the distribution */
                     int chosen_loc_ind = path_dist.sample();
@@ -484,6 +526,56 @@ public final class TSPAlgorithms
             if ( num_iterations <= 0 )
             {
                 stagnated = true;
+
+                if ( DEBUG_2 )
+                {
+                    System.out.println( "Ant Tours Constructed:" );
+                    for ( int i = 0; i < m; i++ )
+                    {
+                        System.out.print( "Ant " + i + ": " );
+                        int j = 0;
+                        for ( j = 0; j < ant_tour_inds[ i ].length - 1; j++ )
+                        {
+                            System.out.print( ant_tour_inds[ i ][ j ] + ", " );
+                        }
+                        System.out.print( ant_tour_inds[ i ][ j ] );
+                        System.out.print( " (" + get_tour_length( 
+                            get_tour_from_inds( locs, 
+                            ant_tour_inds[ i ] ) ) + ")" );
+                        System.out.println();
+                    }
+
+                    System.out.println( "Pheromone Values (x1000):" );
+
+                    System.out.print( "  " );
+                    /* go through each of the columns in paths */
+                    for ( int col = 0; col < paths[ 0 ].length; col++ )
+                    {
+                        System.out.print( col + "    " );
+                    }
+                    System.out.println();
+                    /* go through each of the rows in paths */
+                    for ( int row = 0; row < paths.length; row++ )
+                    {
+                        int col = 0;
+                        System.out.print( row + " " );
+                        /* go through each of the columns in paths */
+                        for ( col = 0; col < paths[ row ].length; col++ )
+                        {
+                            /* there is a path defined here */
+                            if ( row != col )
+                            {
+                                System.out.printf( "%.2f ", 
+                                    ( paths[ row ][ col ].getPheromone() * 1000 ) );
+                            }
+                            else 
+                            {
+                                System.out.print( "0.00 " );
+                            }
+                        }
+                        System.out.println();
+                    }
+                }
             }
             num_iterations--;
             /**/
@@ -510,189 +602,6 @@ public final class TSPAlgorithms
 
         /* return the ant's tour with minimum distance */
         return get_tour_from_inds( locs, sol_tour_inds );
-
-//        /* initialize the last tour */
-//        ArrayList<Location> last_tour = new ArrayList<Location>();
-//
-//        /* has a stagnating state been reached? */
-//        boolean stagnated = false;
-//
-//        /* the number of repeated tours so far */
-//        int repeated_tours = 0;
-//
-//        /* the weight to give pheromone */
-//        double pheromone_weight = 1;
-//        /* the weight to give length */
-//        double length_weight = 1;
-//
-//        /* has the first ant been sent? */
-//        boolean first_ant_sent = false;
-//
-//        /* continue sending ants until stagnating state is reached */
-//        while ( !stagnated )
-//        {
-//            /* to store the previous tour */
-//            ArrayList<Location> prev_tour = new ArrayList<Location>( last_tour );
-//
-//            /* clear the last tour so this ant can start a new one */
-//            last_tour.clear();
-//
-//            /* indices of remaining locations that can be visited */
-//            ArrayList<Integer> remaining_locs_inds = new ArrayList<Integer>() ; 
-//
-//            /* go through each index in locs */
-//            for ( int locs_i = 0; locs_i < locs.length; locs_i++ )
-//            {
-//                /* set the next element of remaining_locs_inds to this index */
-//                remaining_locs_inds.add( locs_i );
-//            }
-//
-//            /* the index of the current location */
-//            int current_loc_ind = 0;
-//
-//            /* remove current_loc_ind from remaining_locs */
-//            remaining_locs_inds.remove( new Integer( 0 ) );
-//
-//            /* add the current location to the end of the last tour */
-//            last_tour.add( locs[ current_loc_ind ] );
-//
-//            /* continue until there are no remaining locations */
-//            while ( remaining_locs_inds.size() > 0 )
-//            {
-//                /* the index of the location the ant was on before moving */
-//                int prev_loc_ind = current_loc_ind;
-//
-//                /* TODO replace with choosing location based on probability */
-//                int chosen_loc_ind = remaining_locs_inds.get( 0 );
-//                /**/
-//
-//                /* the total value of the remaining path weights */
-//                double remaining_weights_total = 0;
-//
-//                /* go through each of the possible paths */
-//                for ( int rem_loc_ind = 0; rem_loc_ind < 
-//                    remaining_locs_inds.size(); rem_loc_ind++ )
-//                {
-//                    /* add the weight of this path to the total */
-//                    remaining_weights_total
-//                        += paths[ current_loc_ind ][ 
-//                        remaining_locs_inds.get( rem_loc_ind  ) ].getWeight( 
-//                        pheromone_weight, length_weight );
-//                }
-//
-//                /* to store the probabilities of each path */
-//                double[] path_probs = new double[ remaining_locs_inds.size() ];
-//
-//                /* go through each of the possible paths */
-//                for ( int rem_loc_ind = 0; rem_loc_ind < 
-//                    remaining_locs_inds.size(); rem_loc_ind++ )
-//                {
-//                    /* set the probability of the ant choosing this path */
-//                    path_probs[ rem_loc_ind ] = paths[ current_loc_ind ][ 
-//                        remaining_locs_inds.get( rem_loc_ind ) ].getWeight( 
-//                        pheromone_weight, length_weight )
-//                        / remaining_weights_total;
-//                }
-//
-//                /* to store remaining_locs_inds as an integer array */
-//                int[] remaining_locs_inds_ints = new int[ 
-//                    remaining_locs_inds.size() ];
-//
-//                /* go through each of the elements in remaining_locs_inds */
-//                for ( int rem_ind = 0; rem_ind < remaining_locs_inds.size(); 
-//                    rem_ind++ )
-//                {
-//                    remaining_locs_inds_ints[ rem_ind ]
-//                        = remaining_locs_inds.get( rem_ind );
-//                }
-//
-//                /* create a new enumerated random distribution using the paths
-//                 * and the path probabilites to determine the path the ant
-//                 * takes next */
-//                EnumeratedIntegerDistribution path_dist = 
-//                    new EnumeratedIntegerDistribution( 
-//                    remaining_locs_inds_ints, path_probs );
-//            
-//                chosen_loc_ind = path_dist.sample();
-//
-//                /* move the ant to the chosen location */
-//                current_loc_ind = chosen_loc_ind;
-//
-//                /* add the chosen location to the end of last_tour */
-//                last_tour.add( locs[ current_loc_ind ] );
-//
-//                /* remove current_loc_ind from remaining_locs */
-//                remaining_locs_inds.remove( new Integer( current_loc_ind ) );
-//
-//                /* go through each of the rows in paths */
-//                for ( int row = 0; row < paths.length; row++ )
-//                {
-//                    /* go through each of the columns in paths */
-//                    for ( int col = 0; col < paths.length; col++ )
-//                    {
-//                        /* the row is less than to the column, so this will not
-//                         * be entered twice for the same path */
-//                        if ( row < col )
-//                        {
-//                            /* evaporate the pheromone along this path */
-//                            paths[ row ][ col ].evaporatePheromone();
-//                        }
-//                    }
-//                }
-//
-//                /* increase the pheromone along the path the ant just traversed */
-//                paths[ prev_loc_ind ][ current_loc_ind ].addPheromone();
-//            }
-//
-//            /* increase the pheromone along the path from the last location to
-//             * the start location to close off the circuit */
-//            paths[ current_loc_ind ][ 0 ].addPheromone();
-//
-//            /* the first ant has been sent */
-//            if ( first_ant_sent )
-//            {
-//                /* the reverse of the previous tour */
-//                ArrayList<Location> prev_tour_rev
-//                    = new ArrayList<Location>( prev_tour );
-//                prev_tour_rev.remove( 0 );
-//                Collections.reverse( prev_tour_rev );
-//                prev_tour_rev.add( 0, prev_tour.get( 0 ) );
-//
-//                /* this tour and the previous one are the same */
-//                if ( last_tour.equals( prev_tour )
-//                    || last_tour.equals( prev_tour_rev ) )
-//                {
-//                    /* there is another repeated tour */
-//                    repeated_tours++;
-//                }
-//
-//                /* this tour and the previous one are not the same */
-//                else
-//                {
-//                    /* TODO */
-//                    System.out.println( "Different!" );
-//                    /**/
-//                    /* there are no repeated tours */
-//                    repeated_tours = 0;
-//                }
-//
-//                /* the repeated tours is beyond the threshhold */
-//                if ( repeated_tours > STAGNATION_THRESHHOLD )
-//                {
-//                    /* the algorithm has satagnated */
-//                    stagnated = true;
-//                }
-//            }
-//            /* the first ant has not been sent */
-//            else
-//            {
-//                /* the first ant has been sent */
-//                first_ant_sent = true;
-//            }
-//        }
-//
-//        /* return the greedy tour */
-//        return last_tour.toArray(new Location[last_tour.size()]);
     }
 
     /**
